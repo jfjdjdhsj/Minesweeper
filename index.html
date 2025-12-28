@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minesweeper: Neo-Notebook Fixed</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f4f4f0;
+            --grid-line: #d1d1d1;
+            --ink-color: #2b2b2b;
+            --shadow-color: #000000;
+            
+            --accent-yellow: #fff59d;
+            --accent-blue: #b3e5fc;
+            --accent-red: #ffcdd2;
+            --accent-green: #c8e6c9;
+            --accent-gray: #e0e0e0;
+            
+            --border-width: 3px;
+            --shadow-offset: 4px;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--ink-color);
+            font-family: 'Patrick Hand', cursive;
+            
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 20px 20px;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            background: #fff;
+            border: var(--border-width) solid var(--ink-color);
+            border-radius: var(--radius);
+            padding: 1.2rem;
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--shadow-color);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+
+        .tape {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(1deg);
+            width: 100px;
+            height: 25px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-left: 2px dashed rgba(0,0,0,0.1);
+            border-right: 2px dashed rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed var(--ink-color);
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            background: var(--accent-yellow);
+            padding: 0 8px;
+            border: 2px solid var(--ink-color);
+            transform: rotate(-2deg);
+            box-shadow: 2px 2px 0 var(--shadow-color);
+        }
+
+        .stats {
+            display: flex;
+            gap: 8px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .stat-box {
+            background: var(--accent-blue);
+            padding: 4px 8px;
+            border: 2px solid var(--ink-color);
+            border-radius: 6px;
+            box-shadow: 2px 2px 0 var(--shadow-color);
+        }
+
+        .controls-area {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .mode-switch {
+            display: flex;
+            background: var(--accent-gray);
+            border: 2px solid var(--ink-color);
+            border-radius: 30px;
+            padding: 4px;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            position: relative;
+            width: 200px;
+            height: 46px;
+        }
+
+        .mode-option {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            z-index: 2;
+        }
+
+        .switch-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background: #fff;
+            border: 2px solid var(--ink-color);
+            border-radius: 24px;
+            box-shadow: 2px 2px 0 var(--shadow-color);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1;
+        }
+
+        .mode-switch[data-mode="flag"] .switch-slider {
+            transform: translateX(100%);
+            background: var(--accent-red);
+        }
+
+        .mode-switch[data-mode="dig"] .switch-slider {
+            background: var(--accent-green);
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr); /* 严格的10列 */
+            grid-template-rows: repeat(10, 1fr);    /* 严格的10行 */
+            gap: 2px; /* 减小间隙防止挤压 */
+            margin: 0 auto;
+            background: var(--ink-color);
+            padding: 3px;
+            border: 2px solid var(--ink-color);
+            border-radius: 8px;
+            width: 100%;
+            aspect-ratio: 1 / 1; /* 强制正方形 */
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier Prime', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            
+            /* --- 关键修复代码 START --- */
+            overflow: hidden; /* 防止内容撑大 */
+            min-width: 0;     /* 允许格子缩小 */
+            min-height: 0;
+            font-size: clamp(12px, 4vw, 24px); /* 动态字体大小 */
+            line-height: 1;   /* 紧凑行高 */
+            /* --- 关键修复代码 END --- */
+        }
+
+        .cell.covered {
+            background-color: #f0f0f0;
+            box-shadow: inset -2px -2px 0 rgba(0,0,0,0.1), inset 2px 2px 0 rgba(255,255,255,1);
+        }
+
+        .cell.pressing {
+            transform: scale(0.92); /* 稍微减小缩放幅度，更稳 */
+            background-color: #e0e0e0;
+            border-radius: 4px;
+        }
+
+        /* 修复旗帜过大导致变形的问题 */
+        .cell.flagged::after { 
+            content: '🚩'; 
+            font-size: 0.7em; /* 稍微缩小旗帜，基于父元素动态字体 */
+            line-height: 1;
+            display: block;
+        }
+
+        .cell.revealed { background-color: #fff; color: var(--ink-color); }
+        
+        /* 修复炸弹显示 */
+        .cell.bomb { 
+            background-color: var(--accent-red); 
+            border: 1px solid var(--ink-color);
+            font-size: 0.8em; /* 炸弹也稍微缩小 */
+        }
+
+        .cell[data-num="1"] { color: #5c6bc0; }
+        .cell[data-num="2"] { color: #66bb6a; }
+        .cell[data-num="3"] { color: #ef5350; }
+        .cell[data-num="4"] { color: #7e57c2; }
+        .cell[data-num="5"] { color: #ff8f00; }
+
+        .reset-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.3rem;
+            background: var(--accent-yellow);
+            border: var(--border-width) solid var(--ink-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--shadow-color);
+            cursor: pointer;
+        }
+
+        .reset-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--shadow-color);
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--radius);
+            display: none;
+            backdrop-filter: blur(4px);
+            z-index: 50;
+        }
+
+        .message-box {
+            background: #fff;
+            border: 3px solid var(--ink-color);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 6px 6px 0 var(--ink-color);
+            transform: rotate(-3deg);
+            width: 85%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="tape"></div>
+
+        <header>
+            <h1>MINES</h1>
+            <div class="stats">
+                <div class="stat-box">💣 <span id="bomb-count">10</span></div>
+                <div class="stat-box">⏱️ <span id="timer">000</span></div>
+            </div>
+        </header>
+
+        <div class="controls-area">
+            <div class="mode-switch" id="mode-switch" data-mode="dig">
+                <div class="switch-slider"></div>
+                <div class="mode-option" onclick="setMode('dig')">⛏️ Dig</div>
+                <div class="mode-option" onclick="setMode('flag')">🚩 Flag</div>
+            </div>
+        </div>
+
+        <div id="grid"></div>
+
+        <button class="reset-btn" onclick="initGame()">Restart Game</button>
+
+        <div class="overlay" id="overlay">
+            <div class="message-box">
+                <h2 id="msg-text">YOU WIN!</h2>
+                <p>Tap below to play again</p>
+                <button class="reset-btn" onclick="initGame()" style="margin-top:10px; background:white;">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gridElement = document.getElementById('grid');
+        const bombCountElement = document.getElementById('bomb-count');
+        const timerElement = document.getElementById('timer');
+        const overlay = document.getElementById('overlay');
+        const msgText = document.getElementById('msg-text');
+        const modeSwitch = document.getElementById('mode-switch');
+
+        const SIZE = 10;
+        const BOMBS = 15;
+        let cells = [];
+        let gameOver = false;
+        let flags = 0;
+        let time = 0;
+        let timerInterval;
+        let firstClick = true;
+        let currentMode = 'dig';
+
+        function setMode(mode) {
+            currentMode = mode;
+            modeSwitch.dataset.mode = mode;
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        modeSwitch.addEventListener('click', (e) => {
+            if(e.target.classList.contains('mode-option')) return;
+            const newMode = currentMode === 'dig' ? 'flag' : 'dig';
+            setMode(newMode);
+        });
+
+        function initGame() {
+            gridElement.innerHTML = '';
+            cells = [];
+            gameOver = false;
+            flags = 0;
+            time = 0;
+            firstClick = true;
+            clearInterval(timerInterval);
+            timerElement.innerText = '000';
+            bombCountElement.innerText = BOMBS;
+            overlay.style.display = 'none';
+            setMode('dig');
+
+            for (let i = 0; i < SIZE * SIZE; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell', 'covered');
+                cell.dataset.index = i;
+                bindInteraction(cell, i);
+                gridElement.appendChild(cell);
+                cells.push({
+                    element: cell,
+                    isBomb: false,
+                    isRevealed: false,
+                    isFlagged: false,
+                    neighborBombs: 0
+                });
+            }
+        }
+
+        function bindInteraction(cellElement, index) {
+            let pressTimer;
+            let isLongPress = false;
+
+            cellElement.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                handleFlag(index);
+            });
+
+            cellElement.addEventListener('touchstart', (e) => {
+                if (gameOver || cells[index].isRevealed) return;
+                isLongPress = false;
+                cellElement.classList.add('pressing');
+
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    cellElement.classList.remove('pressing');
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    handleFlag(index);
+                }, 400); // 缩短长按判定时间，手感更好
+            }, {passive: true});
+
+            cellElement.addEventListener('touchend', (e) => {
+                clearTimeout(pressTimer);
+                cellElement.classList.remove('pressing');
+                
+                if (!isLongPress) {
+                    e.preventDefault(); 
+                    handleAction(index);
+                }
+            });
+
+            cellElement.addEventListener('touchmove', () => {
+                clearTimeout(pressTimer);
+                cellElement.classList.remove('pressing');
+                isLongPress = true;
+            }, {passive: true});
+
+            cellElement.addEventListener('click', () => {
+                handleAction(index);
+            });
+        }
+
+        function handleAction(index) {
+            if (gameOver) return;
+            if (currentMode === 'flag') {
+                handleFlag(index);
+            } else {
+                if (cells[index].isFlagged) return;
+                handleDig(index);
+            }
+        }
+
+        function handleDig(index) {
+            const cell = cells[index];
+            if (cell.isRevealed || cell.isFlagged) return;
+
+            if (firstClick) {
+                firstClick = false;
+                placeBombs(index);
+                startTimer();
+            }
+
+            if (cell.isBomb) {
+                gameOver = true;
+                revealAllBombs();
+                showOverlay("GAME OVER", "#ffcdd2");
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            } else {
+                revealCell(index);
+                checkWin();
+            }
+        }
+
+        function handleFlag(index) {
+            if (gameOver || firstClick) return;
+            const cell = cells[index];
+            if (cell.isRevealed) return;
+
+            if (cell.isFlagged) {
+                cell.isFlagged = false;
+                cell.element.classList.remove('flagged');
+                flags--;
+            } else {
+                if (flags < BOMBS) {
+                    cell.isFlagged = true;
+                    cell.element.classList.add('flagged');
+                    flags++;
+                }
+            }
+            bombCountElement.innerText = BOMBS - flags;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                time++;
+                timerElement.innerText = time.toString().padStart(3, '0');
+            }, 1000);
+        }
+
+        function placeBombs(excludeIndex) {
+            let bombsPlaced = 0;
+            while (bombsPlaced < BOMBS) {
+                let randomIndex = Math.floor(Math.random() * (SIZE * SIZE));
+                if (!cells[randomIndex].isBomb && randomIndex !== excludeIndex) {
+                    cells[randomIndex].isBomb = true;
+                    bombsPlaced++;
+                }
+            }
+            calculateNeighbors();
+        }
+
+        function calculateNeighbors() {
+            for (let i = 0; i < SIZE * SIZE; i++) {
+                if (cells[i].isBomb) continue;
+                let count = 0;
+                const neighbors = getNeighbors(i);
+                neighbors.forEach(index => {
+                    if (cells[index].isBomb) count++;
+                });
+                cells[i].neighborBombs = count;
+            }
+        }
+
+        function getNeighbors(index) {
+            const neighbors = [];
+            const row = Math.floor(index / SIZE);
+            const col = index % SIZE;
+
+            for (let r = row - 1; r <= row + 1; r++) {
+                for (let c = col - 1; c <= col + 1; c++) {
+                    if (r >= 0 && r < SIZE && c >= 0 && c < SIZE) {
+                        const neighborIndex = r * SIZE + c;
+                        if (neighborIndex !== index) {
+                            neighbors.push(neighborIndex);
+                        }
+                    }
+                }
+            }
+            return neighbors;
+        }
+
+        function revealCell(index) {
+            const cell = cells[index];
+            if (cell.isRevealed || cell.isFlagged) return;
+
+            cell.isRevealed = true;
+            cell.element.classList.remove('covered');
+            cell.element.classList.add('revealed');
+
+            if (cell.neighborBombs > 0) {
+                cell.element.innerText = cell.neighborBombs;
+                cell.element.dataset.num = cell.neighborBombs;
+            } else {
+                const neighbors = getNeighbors(index);
+                neighbors.forEach(neighborIndex => revealCell(neighborIndex));
+            }
+        }
+
+        function revealAllBombs() {
+            cells.forEach(cell => {
+                if (cell.isBomb) {
+                    cell.element.classList.remove('covered');
+                    cell.element.classList.add('bomb');
+                    cell.element.innerText = '💣';
+                }
+            });
+            clearInterval(timerInterval);
+        }
+
+        function checkWin() {
+            let revealedCount = 0;
+            cells.forEach(cell => {
+                if (cell.isRevealed) revealedCount++;
+            });
+
+            if (revealedCount === (SIZE * SIZE) - BOMBS) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                showOverlay("YOU WIN!", "#c8e6c9");
+            }
+        }
+
+        function showOverlay(text, color) {
+            msgText.innerText = text;
+            document.querySelector('.message-box').style.background = color;
+            overlay.style.display = 'flex';
+        }
+
+        initGame();
+
+    </script>
+</body>
+</html>
