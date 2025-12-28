@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minesweeper: Neo-Notebook Fixed</title>
+    <title>Minesweeper: Fixed Menu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-color: #f4f4f0;
-            --grid-line: #d1d1d1;
-            --ink-color: #2b2b2b;
-            --shadow-color: #000000;
+            --bg-color: #dcdcdc; 
+            --grid-line: #a0a0a0;
+            --ink-color: #1a1a1a;
+            --cell-covered: #90a4ae; 
+            --cell-revealed: #fffdf0;
             
-            --accent-yellow: #fff59d;
-            --accent-blue: #b3e5fc;
-            --accent-red: #ffcdd2;
-            --accent-green: #c8e6c9;
-            --accent-gray: #e0e0e0;
+            --accent-yellow: #ffeb3b;
+            --accent-blue: #81d4fa;
+            --accent-red: #ff8a80;
+            --accent-green: #a5d6a7;
+            --accent-gray: #cfd8dc;
             
             --border-width: 3px;
             --shadow-offset: 4px;
-            --radius: 12px;
+            --radius: 10px;
         }
 
         * {
@@ -40,7 +41,7 @@
             min-height: 100vh;
             background-color: var(--bg-color);
             color: var(--ink-color);
-            font-family: 'Patrick Hand', cursive;
+            font-family: 'Patrick Hand', cursive, sans-serif;
             
             background-image: 
                 linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -53,26 +54,48 @@
         }
 
         .game-container {
-            background: #fff;
+            background: #f5f5f5;
             border: var(--border-width) solid var(--ink-color);
             border-radius: var(--radius);
             padding: 1.2rem;
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--shadow-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--ink-color);
             width: 100%;
             max-width: 450px;
             position: relative;
+            z-index: 1;
+        }
+
+        .lang-btn {
+            position: absolute;
+            top: -15px;
+            right: 10px;
+            background: #fff;
+            border: 2px solid var(--ink-color);
+            padding: 5px 10px;
+            font-weight: bold;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            transform: rotate(3deg);
+            box-shadow: 2px 2px 0 var(--ink-color);
+            z-index: 20;
+            font-size: 0.9rem;
+        }
+        
+        .lang-btn:active {
+            transform: rotate(3deg) scale(0.95);
         }
 
         .tape {
             position: absolute;
-            top: -12px;
+            top: -14px;
             left: 50%;
-            transform: translateX(-50%) rotate(1deg);
-            width: 100px;
-            height: 25px;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-left: 2px dashed rgba(0,0,0,0.1);
-            border-right: 2px dashed rgba(0,0,0,0.1);
+            transform: translateX(-50%) rotate(1.5deg);
+            width: 110px;
+            height: 28px;
+            background-color: rgba(255, 235, 59, 0.5);
+            border: 2px solid rgba(0,0,0,0.1);
+            border-left: 2px dashed rgba(0,0,0,0.2);
+            border-right: 2px dashed rgba(0,0,0,0.2);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             z-index: 10;
         }
@@ -82,25 +105,31 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            border-bottom: 2px dashed var(--ink-color);
+            border-bottom: 3px solid var(--ink-color);
             padding-bottom: 10px;
         }
 
         h1 {
             margin: 0;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             background: var(--accent-yellow);
-            padding: 0 8px;
-            border: 2px solid var(--ink-color);
+            padding: 2px 10px;
+            border: 3px solid var(--ink-color);
             transform: rotate(-2deg);
-            box-shadow: 2px 2px 0 var(--shadow-color);
+            box-shadow: 3px 3px 0 var(--ink-color);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        h1:active {
+            transform: rotate(-2deg) scale(0.95);
         }
 
         .stats {
             display: flex;
             gap: 8px;
             font-family: 'Courier Prime', monospace;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
         }
 
@@ -109,7 +138,7 @@
             padding: 4px 8px;
             border: 2px solid var(--ink-color);
             border-radius: 6px;
-            box-shadow: 2px 2px 0 var(--shadow-color);
+            box-shadow: 2px 2px 0 var(--ink-color);
         }
 
         .controls-area {
@@ -121,14 +150,14 @@
         .mode-switch {
             display: flex;
             background: var(--accent-gray);
-            border: 2px solid var(--ink-color);
+            border: 3px solid var(--ink-color);
             border-radius: 30px;
             padding: 4px;
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1);
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
             cursor: pointer;
             position: relative;
-            width: 200px;
-            height: 46px;
+            width: 220px;
+            height: 50px;
         }
 
         .mode-option {
@@ -138,6 +167,8 @@
             align-items: center;
             font-size: 1.1rem;
             z-index: 2;
+            font-weight: bold;
+            transition: all 0.2s;
         }
 
         .switch-slider {
@@ -147,9 +178,9 @@
             width: calc(50% - 4px);
             height: calc(100% - 8px);
             background: #fff;
-            border: 2px solid var(--ink-color);
+            border: 3px solid var(--ink-color);
             border-radius: 24px;
-            box-shadow: 2px 2px 0 var(--shadow-color);
+            box-shadow: 2px 2px 0 var(--ink-color);
             transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             z-index: 1;
         }
@@ -165,22 +196,22 @@
 
         #grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr); /* 严格的10列 */
-            grid-template-rows: repeat(10, 1fr);    /* 严格的10行 */
-            gap: 2px; /* 减小间隙防止挤压 */
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 3px;
             margin: 0 auto;
             background: var(--ink-color);
             padding: 3px;
-            border: 2px solid var(--ink-color);
+            border: 3px solid var(--ink-color);
             border-radius: 8px;
             width: 100%;
-            aspect-ratio: 1 / 1; /* 强制正方形 */
+            aspect-ratio: 1 / 1;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
         }
 
         .cell {
             width: 100%;
             height: 100%;
-            background-color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -188,73 +219,86 @@
             font-weight: bold;
             cursor: pointer;
             position: relative;
-            
-            /* --- 关键修复代码 START --- */
-            overflow: hidden; /* 防止内容撑大 */
-            min-width: 0;     /* 允许格子缩小 */
+            overflow: hidden;
+            min-width: 0;
             min-height: 0;
-            font-size: clamp(12px, 4vw, 24px); /* 动态字体大小 */
-            line-height: 1;   /* 紧凑行高 */
-            /* --- 关键修复代码 END --- */
+            font-size: clamp(14px, 5vw, 24px);
+            line-height: 1;
+            transition: background-color 0.1s;
         }
 
         .cell.covered {
-            background-color: #f0f0f0;
-            box-shadow: inset -2px -2px 0 rgba(0,0,0,0.1), inset 2px 2px 0 rgba(255,255,255,1);
+            background-color: var(--cell-covered);
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.4), inset -2px -2px 0 rgba(0,0,0,0.2);
         }
 
+        .cell.covered:hover { filter: brightness(1.1); }
+
         .cell.pressing {
-            transform: scale(0.92); /* 稍微减小缩放幅度，更稳 */
-            background-color: #e0e0e0;
+            transform: scale(0.95);
+            background-color: #78909c !important;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.3) !important;
             border-radius: 4px;
         }
 
-        /* 修复旗帜过大导致变形的问题 */
         .cell.flagged::after { 
             content: '🚩'; 
-            font-size: 0.7em; /* 稍微缩小旗帜，基于父元素动态字体 */
-            line-height: 1;
-            display: block;
+            font-size: 0.7em; 
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.2));
         }
 
-        .cell.revealed { background-color: #fff; color: var(--ink-color); }
+        .cell.revealed { 
+            background-color: var(--cell-revealed); 
+            color: var(--ink-color);
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+        }
         
-        /* 修复炸弹显示 */
         .cell.bomb { 
             background-color: var(--accent-red); 
             border: 1px solid var(--ink-color);
-            font-size: 0.8em; /* 炸弹也稍微缩小 */
+            font-size: 0.8em;
         }
 
-        .cell[data-num="1"] { color: #5c6bc0; }
-        .cell[data-num="2"] { color: #66bb6a; }
-        .cell[data-num="3"] { color: #ef5350; }
-        .cell[data-num="4"] { color: #7e57c2; }
-        .cell[data-num="5"] { color: #ff8f00; }
+        .cell.x-ray-active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 3px solid #ff0000;
+            background: rgba(255, 0, 0, 0.2);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .cell[data-num="1"] { color: #304ffe; }
+        .cell[data-num="2"] { color: #2e7d32; }
+        .cell[data-num="3"] { color: #d50000; }
+        .cell[data-num="4"] { color: #6200ea; }
+        .cell[data-num="5"] { color: #ff6d00; }
 
         .reset-btn {
             display: block;
             width: 100%;
             margin-top: 20px;
-            padding: 12px;
+            padding: 14px;
             font-family: 'Patrick Hand', cursive;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
+            font-weight: bold;
             background: var(--accent-yellow);
             border: var(--border-width) solid var(--ink-color);
             border-radius: var(--radius);
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--shadow-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--ink-color);
             cursor: pointer;
         }
 
         .reset-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0 var(--shadow-color);
+            transform: translate(3px, 3px);
+            box-shadow: 1px 1px 0 var(--ink-color);
         }
 
         .overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.85);
+            background: rgba(0,0,0,0.4);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -266,22 +310,103 @@
 
         .message-box {
             background: #fff;
-            border: 3px solid var(--ink-color);
-            padding: 20px;
+            border: 4px solid var(--ink-color);
+            padding: 25px;
             text-align: center;
-            box-shadow: 6px 6px 0 var(--ink-color);
+            box-shadow: 8px 8px 0 var(--ink-color);
             transform: rotate(-3deg);
             width: 85%;
         }
+
+        .cheat-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(1deg);
+            width: 90%;
+            max-width: 320px;
+            background: #212121;
+            color: #00e676;
+            border: 4px solid #000;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.6);
+            z-index: 100;
+            display: none;
+            font-family: 'Courier Prime', monospace;
+        }
+
+        .cheat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #424242;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .cheat-title {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px #00e676;
+        }
+
+        .cheat-close {
+            background: #d50000;
+            border: 2px solid #fff;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cheat-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #424242;
+            color: #fff;
+            border: 2px solid #757575;
+            border-radius: 8px;
+            font-family: 'Courier Prime', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 4px 4px 0 #000;
+            transition: all 0.1s;
+            font-size: 0.9rem;
+        }
+
+        .cheat-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .cheat-btn.active {
+            background: #00e676;
+            color: #000;
+            border-color: #000;
+            box-shadow: 4px 4px 0 #004d40;
+        }
+
+        .cheat-btn span { float: right; }
+
     </style>
 </head>
 <body>
 
     <div class="game-container">
+        <button class="lang-btn" onclick="toggleLanguage()">中</button>
         <div class="tape"></div>
 
         <header>
-            <h1>MINES</h1>
+            <h1 id="game-title" data-i18n="title">MINES</h1>
             <div class="stats">
                 <div class="stat-box">💣 <span id="bomb-count">10</span></div>
                 <div class="stat-box">⏱️ <span id="timer">000</span></div>
@@ -291,31 +416,124 @@
         <div class="controls-area">
             <div class="mode-switch" id="mode-switch" data-mode="dig">
                 <div class="switch-slider"></div>
-                <div class="mode-option" onclick="setMode('dig')">⛏️ Dig</div>
-                <div class="mode-option" onclick="setMode('flag')">🚩 Flag</div>
+                <div class="mode-option" onclick="setMode('dig')" data-i18n="mode_dig">⛏️ Dig</div>
+                <div class="mode-option" onclick="setMode('flag')" data-i18n="mode_flag">🚩 Flag</div>
             </div>
         </div>
 
         <div id="grid"></div>
 
-        <button class="reset-btn" onclick="initGame()">Restart Game</button>
+        <button class="reset-btn" onclick="initGame()" data-i18n="restart">Restart Game</button>
 
         <div class="overlay" id="overlay">
             <div class="message-box">
-                <h2 id="msg-text">YOU WIN!</h2>
-                <p>Tap below to play again</p>
-                <button class="reset-btn" onclick="initGame()" style="margin-top:10px; background:white;">Play Again</button>
+                <h2 id="msg-title">YOU WIN!</h2>
+                <p id="msg-desc">Tap below to play again</p>
+                <button class="reset-btn" onclick="initGame()" style="margin-top:10px; background:white;" data-i18n="play_again">Play Again</button>
             </div>
         </div>
     </div>
 
+    <!-- 外挂菜单 -->
+    <div class="cheat-menu" id="cheat-menu">
+        <div class="cheat-header">
+            <div class="cheat-title" data-i18n="dev_title">>_ DEV_MENU</div>
+            <div class="cheat-close" onclick="toggleCheatMenu()">X</div>
+        </div>
+        <button class="cheat-btn" onclick="cheatInstantWin()" data-i18n="dev_win">🏆 INSTANT WIN</button>
+        <button class="cheat-btn" onclick="cheatAutoFlag()" data-i18n="dev_flag">🚩 AUTO FLAG</button>
+        
+        <!-- 修复点：给状态 span 加上 ID，不干扰前面的文字 -->
+        <button class="cheat-btn" id="btn-xray" onclick="cheatXRay()">
+            <strong data-i18n="dev_xray">👁️ X-RAY</strong> <span id="xray-status">OFF</span>
+        </button>
+        <button class="cheat-btn" id="btn-god" onclick="cheatGodMode()">
+            <strong data-i18n="dev_god">🛡️ GOD MODE</strong> <span id="god-status">OFF</span>
+        </button>
+    </div>
+
     <script>
+        const i18n = {
+            en: {
+                title: "MINES",
+                mode_dig: "⛏️ Dig",
+                mode_flag: "🚩 Flag",
+                restart: "Restart Game",
+                win_title: "YOU WIN!",
+                win_desc: "Tap below to play again",
+                lose_title: "GAME OVER",
+                lose_desc: "Don't give up!",
+                play_again: "Play Again",
+                dev_title: ">_ DEV_MENU",
+                dev_win: "🏆 INSTANT WIN",
+                dev_flag: "🚩 AUTO FLAG",
+                dev_xray: "👁️ X-RAY",
+                dev_god: "🛡️ GOD MODE",
+                status_on: "ON",
+                status_off: "OFF"
+            },
+            zh: {
+                title: "扫雷",
+                mode_dig: "⛏️ 挖掘",
+                mode_flag: "🚩 插旗",
+                restart: "重新开始",
+                win_title: "大吉大利！",
+                win_desc: "点击下方再来一局",
+                lose_title: "游戏结束",
+                lose_desc: "胜败乃兵家常事",
+                play_again: "再玩一次",
+                dev_title: ">_ 开发者菜单",
+                dev_win: "🏆 一键获胜",
+                dev_flag: "🚩 自动插旗",
+                dev_xray: "👁️ 透视模式",
+                dev_god: "🛡️ 无敌模式",
+                status_on: "开启",
+                status_off: "关闭"
+            }
+        };
+
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            document.querySelector('.lang-btn').innerText = currentLang === 'en' ? '中' : 'EN';
+            updateTexts();
+        }
+
+        function updateTexts() {
+            // 1. 更新所有通用文本 (包括外挂菜单的功能名)
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerText = i18n[currentLang][key];
+                }
+            });
+
+            // 2. 单独更新外挂菜单的状态文本 (只更新 span，不动前面的 strong)
+            document.getElementById('xray-status').innerText = isXRay ? i18n[currentLang].status_on : i18n[currentLang].status_off;
+            document.getElementById('god-status').innerText = isGodMode ? i18n[currentLang].status_on : i18n[currentLang].status_off;
+            
+            // 3. 如果弹窗正在显示，更新弹窗内容
+            if (overlay.style.display === 'flex') {
+                const isWin = document.getElementById('msg-title').innerText.includes('WIN') || document.getElementById('msg-title').innerText.includes('大吉');
+                if (isWin) showOverlay(i18n[currentLang].win_title, i18n[currentLang].win_desc, "#c8e6c9");
+                else showOverlay(i18n[currentLang].lose_title, i18n[currentLang].lose_desc, "#ffcdd2");
+            }
+        }
+
+        // --- 游戏核心逻辑 ---
         const gridElement = document.getElementById('grid');
         const bombCountElement = document.getElementById('bomb-count');
         const timerElement = document.getElementById('timer');
         const overlay = document.getElementById('overlay');
-        const msgText = document.getElementById('msg-text');
+        const msgTitle = document.getElementById('msg-title');
+        const msgDesc = document.getElementById('msg-desc');
         const modeSwitch = document.getElementById('mode-switch');
+        
+        const gameTitle = document.getElementById('game-title');
+        const cheatMenu = document.getElementById('cheat-menu');
+        const btnXray = document.getElementById('btn-xray');
+        const btnGod = document.getElementById('btn-god');
 
         const SIZE = 10;
         const BOMBS = 15;
@@ -326,6 +544,80 @@
         let timerInterval;
         let firstClick = true;
         let currentMode = 'dig';
+
+        let cheatTitleClicks = 0;
+        let cheatClickTimer;
+        let isGodMode = false;
+        let isXRay = false;
+
+        // --- 外挂逻辑 ---
+
+        gameTitle.addEventListener('click', () => {
+            cheatTitleClicks++;
+            clearTimeout(cheatClickTimer);
+            cheatClickTimer = setTimeout(() => { cheatTitleClicks = 0; }, 2000);
+            if (cheatTitleClicks >= 5) {
+                toggleCheatMenu();
+                cheatTitleClicks = 0;
+                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            }
+        });
+
+        function toggleCheatMenu() {
+            const isHidden = cheatMenu.style.display === 'none' || cheatMenu.style.display === '';
+            cheatMenu.style.display = isHidden ? 'block' : 'none';
+        }
+
+        function cheatInstantWin() {
+            if (gameOver) return;
+            cells.forEach((cell, index) => {
+                if (!cell.isBomb && !cell.isRevealed) revealCell(index);
+            });
+            checkWin();
+            toggleCheatMenu();
+        }
+
+        function cheatAutoFlag() {
+            if (gameOver) return;
+            cells.forEach(cell => {
+                if (cell.isBomb && !cell.isFlagged) {
+                    cell.isFlagged = true;
+                    cell.element.classList.add('flagged');
+                    flags++;
+                } else if (!cell.isBomb && cell.isFlagged) {
+                    cell.isFlagged = false;
+                    cell.element.classList.remove('flagged');
+                    flags--;
+                }
+            });
+            bombCountElement.innerText = BOMBS - flags;
+            toggleCheatMenu();
+        }
+
+        function cheatXRay() {
+            isXRay = !isXRay;
+            btnXray.classList.toggle('active');
+            
+            // 修复：只更新状态文字，不动功能名称
+            document.getElementById('xray-status').innerText = isXRay ? i18n[currentLang].status_on : i18n[currentLang].status_off;
+            
+            cells.forEach(cell => {
+                if (cell.isBomb) {
+                    if (isXRay) cell.element.classList.add('x-ray-active');
+                    else cell.element.classList.remove('x-ray-active');
+                }
+            });
+        }
+
+        function cheatGodMode() {
+            isGodMode = !isGodMode;
+            btnGod.classList.toggle('active');
+            
+            // 修复：只更新状态文字
+            document.getElementById('god-status').innerText = isGodMode ? i18n[currentLang].status_on : i18n[currentLang].status_off;
+        }
+
+        // --- 游戏主逻辑 ---
 
         function setMode(mode) {
             currentMode = mode;
@@ -351,7 +643,7 @@
             bombCountElement.innerText = BOMBS;
             overlay.style.display = 'none';
             setMode('dig');
-
+            
             for (let i = 0; i < SIZE * SIZE; i++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell', 'covered');
@@ -387,13 +679,12 @@
                     cellElement.classList.remove('pressing');
                     if (navigator.vibrate) navigator.vibrate(50);
                     handleFlag(index);
-                }, 400); // 缩短长按判定时间，手感更好
+                }, 400); 
             }, {passive: true});
 
             cellElement.addEventListener('touchend', (e) => {
                 clearTimeout(pressTimer);
                 cellElement.classList.remove('pressing');
-                
                 if (!isLongPress) {
                     e.preventDefault(); 
                     handleAction(index);
@@ -432,10 +723,16 @@
             }
 
             if (cell.isBomb) {
-                gameOver = true;
-                revealAllBombs();
-                showOverlay("GAME OVER", "#ffcdd2");
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                if (isGodMode) {
+                    cell.element.innerText = '🤡';
+                    cell.element.style.backgroundColor = '#fff';
+                    if (navigator.vibrate) navigator.vibrate(50);
+                } else {
+                    gameOver = true;
+                    revealAllBombs();
+                    showOverlay(i18n[currentLang].lose_title, i18n[currentLang].lose_desc, "#ffcdd2");
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                }
             } else {
                 revealCell(index);
                 checkWin();
@@ -478,6 +775,12 @@
                 }
             }
             calculateNeighbors();
+            
+            if (isXRay) {
+                cells.forEach(cell => {
+                    if (cell.isBomb) cell.element.classList.add('x-ray-active');
+                });
+            }
         }
 
         function calculateNeighbors() {
@@ -547,12 +850,13 @@
             if (revealedCount === (SIZE * SIZE) - BOMBS) {
                 gameOver = true;
                 clearInterval(timerInterval);
-                showOverlay("YOU WIN!", "#c8e6c9");
+                showOverlay(i18n[currentLang].win_title, i18n[currentLang].win_desc, "#c8e6c9");
             }
         }
 
-        function showOverlay(text, color) {
-            msgText.innerText = text;
+        function showOverlay(title, desc, color) {
+            msgTitle.innerText = title;
+            msgDesc.innerText = desc;
             document.querySelector('.message-box').style.background = color;
             overlay.style.display = 'flex';
         }
