@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minesweeper: Fixed Menu</title>
+    <title>Minesweeper: Default Chinese</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -41,7 +41,8 @@
             min-height: 100vh;
             background-color: var(--bg-color);
             color: var(--ink-color);
-            font-family: 'Patrick Hand', cursive, sans-serif;
+            /* 增加中文字体支持，防止中文显示不协调 */
+            font-family: 'Patrick Hand', 'PingFang SC', 'Microsoft YaHei', cursive, sans-serif;
             
             background-image: 
                 linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -402,7 +403,8 @@
 <body>
 
     <div class="game-container">
-        <button class="lang-btn" onclick="toggleLanguage()">中</button>
+        <!-- 默认显示 EN，表示点击切换到英文 -->
+        <button class="lang-btn" onclick="toggleLanguage()">EN</button>
         <div class="tape"></div>
 
         <header>
@@ -443,7 +445,6 @@
         <button class="cheat-btn" onclick="cheatInstantWin()" data-i18n="dev_win">🏆 INSTANT WIN</button>
         <button class="cheat-btn" onclick="cheatAutoFlag()" data-i18n="dev_flag">🚩 AUTO FLAG</button>
         
-        <!-- 修复点：给状态 span 加上 ID，不干扰前面的文字 -->
         <button class="cheat-btn" id="btn-xray" onclick="cheatXRay()">
             <strong data-i18n="dev_xray">👁️ X-RAY</strong> <span id="xray-status">OFF</span>
         </button>
@@ -492,7 +493,8 @@
             }
         };
 
-        let currentLang = 'en';
+        // 默认语言设为中文
+        let currentLang = 'zh';
 
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'zh' : 'en';
@@ -501,19 +503,15 @@
         }
 
         function updateTexts() {
-            // 1. 更新所有通用文本 (包括外挂菜单的功能名)
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (i18n[currentLang][key]) {
                     el.innerText = i18n[currentLang][key];
                 }
             });
-
-            // 2. 单独更新外挂菜单的状态文本 (只更新 span，不动前面的 strong)
             document.getElementById('xray-status').innerText = isXRay ? i18n[currentLang].status_on : i18n[currentLang].status_off;
             document.getElementById('god-status').innerText = isGodMode ? i18n[currentLang].status_on : i18n[currentLang].status_off;
             
-            // 3. 如果弹窗正在显示，更新弹窗内容
             if (overlay.style.display === 'flex') {
                 const isWin = document.getElementById('msg-title').innerText.includes('WIN') || document.getElementById('msg-title').innerText.includes('大吉');
                 if (isWin) showOverlay(i18n[currentLang].win_title, i18n[currentLang].win_desc, "#c8e6c9");
@@ -521,7 +519,6 @@
             }
         }
 
-        // --- 游戏核心逻辑 ---
         const gridElement = document.getElementById('grid');
         const bombCountElement = document.getElementById('bomb-count');
         const timerElement = document.getElementById('timer');
@@ -549,8 +546,6 @@
         let cheatClickTimer;
         let isGodMode = false;
         let isXRay = false;
-
-        // --- 外挂逻辑 ---
 
         gameTitle.addEventListener('click', () => {
             cheatTitleClicks++;
@@ -597,10 +592,7 @@
         function cheatXRay() {
             isXRay = !isXRay;
             btnXray.classList.toggle('active');
-            
-            // 修复：只更新状态文字，不动功能名称
             document.getElementById('xray-status').innerText = isXRay ? i18n[currentLang].status_on : i18n[currentLang].status_off;
-            
             cells.forEach(cell => {
                 if (cell.isBomb) {
                     if (isXRay) cell.element.classList.add('x-ray-active');
@@ -612,12 +604,8 @@
         function cheatGodMode() {
             isGodMode = !isGodMode;
             btnGod.classList.toggle('active');
-            
-            // 修复：只更新状态文字
             document.getElementById('god-status').innerText = isGodMode ? i18n[currentLang].status_on : i18n[currentLang].status_off;
         }
-
-        // --- 游戏主逻辑 ---
 
         function setMode(mode) {
             currentMode = mode;
@@ -658,6 +646,8 @@
                     neighborBombs: 0
                 });
             }
+            // 每次初始化游戏时，确保语言文本是正确的
+            updateTexts();
         }
 
         function bindInteraction(cellElement, index) {
@@ -740,7 +730,8 @@
         }
 
         function handleFlag(index) {
-            if (gameOver || firstClick) return;
+            if (gameOver) return; 
+            
             const cell = cells[index];
             if (cell.isRevealed) return;
 
@@ -861,6 +852,7 @@
             overlay.style.display = 'flex';
         }
 
+        // 启动游戏
         initGame();
 
     </script>
