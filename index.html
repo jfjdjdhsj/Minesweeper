@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minesweeper: Default Chinese</title>
+    <title>Minesweeper: Double Tap</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -41,7 +41,6 @@
             min-height: 100vh;
             background-color: var(--bg-color);
             color: var(--ink-color);
-            /* 增加中文字体支持，防止中文显示不协调 */
             font-family: 'Patrick Hand', 'PingFang SC', 'Microsoft YaHei', cursive, sans-serif;
             
             background-image: 
@@ -403,7 +402,6 @@
 <body>
 
     <div class="game-container">
-        <!-- 默认显示 EN，表示点击切换到英文 -->
         <button class="lang-btn" onclick="toggleLanguage()">EN</button>
         <div class="tape"></div>
 
@@ -493,7 +491,6 @@
             }
         };
 
-        // 默认语言设为中文
         let currentLang = 'zh';
 
         function toggleLanguage() {
@@ -541,6 +538,10 @@
         let timerInterval;
         let firstClick = true;
         let currentMode = 'dig';
+
+        // 双击检测变量
+        let lastTapTime = 0;
+        let lastTapIndex = -1;
 
         let cheatTitleClicks = 0;
         let cheatClickTimer;
@@ -631,6 +632,8 @@
             bombCountElement.innerText = BOMBS;
             overlay.style.display = 'none';
             setMode('dig');
+            lastTapTime = 0;
+            lastTapIndex = -1;
             
             for (let i = 0; i < SIZE * SIZE; i++) {
                 const cell = document.createElement('div');
@@ -646,7 +649,6 @@
                     neighborBombs: 0
                 });
             }
-            // 每次初始化游戏时，确保语言文本是正确的
             updateTexts();
         }
 
@@ -656,7 +658,7 @@
 
             cellElement.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                handleFlag(index);
+                toggleFlag(index); // 右键依旧可以直接切换（保留给电脑端习惯）
             });
 
             cellElement.addEventListener('touchstart', (e) => {
@@ -668,7 +670,7 @@
                     isLongPress = true;
                     cellElement.classList.remove('pressing');
                     if (navigator.vibrate) navigator.vibrate(50);
-                    handleFlag(index);
+                    toggleFlag(index); // 长按也可以切换
                 }, 400); 
             }, {passive: true});
 
@@ -692,12 +694,44 @@
             });
         }
 
+        // 核心交互逻辑：处理单击和双击
         function handleAction(index) {
             if (gameOver) return;
+            const cell = cells[index];
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+
+            // --- 双击检测逻辑 ---
+            if (lastTapIndex === index && tapLength < 300 && tapLength > 0) {
+                // 检测到双击！
+                if (cell.isFlagged) {
+                    // 如果有旗子，则移除 (无论什么模式)
+                    toggleFlag(index);
+                    if (navigator.vibrate) navigator.vibrate(20);
+                    // 重置点击状态，防止触发三次点击
+                    lastTapTime = 0; 
+                    lastTapIndex = -1;
+                    return;
+                }
+            }
+
+            // 更新点击记录
+            lastTapTime = currentTime;
+            lastTapIndex = index;
+
+            // --- 单击逻辑 ---
+            if (cell.isFlagged) {
+                // 如果单击了有旗子的方块 -> 什么都不做 (保护)
+                return;
+            }
+
             if (currentMode === 'flag') {
-                handleFlag(index);
+                // 插旗模式单击 -> 增加旗子
+                if (!cell.isFlagged) {
+                    toggleFlag(index);
+                }
             } else {
-                if (cells[index].isFlagged) return;
+                // 挖掘模式单击 -> 挖掘
                 handleDig(index);
             }
         }
@@ -729,7 +763,8 @@
             }
         }
 
-        function handleFlag(index) {
+        // 切换旗子状态 (Add/Remove)
+        function toggleFlag(index) {
             if (gameOver) return; 
             
             const cell = cells[index];
@@ -852,7 +887,6 @@
             overlay.style.display = 'flex';
         }
 
-        // 启动游戏
         initGame();
 
     </script>
